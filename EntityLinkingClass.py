@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sun Nov 24 13:04:53 2019
-
-@author: felixjff
+Entity Linking class
 """
 
 from warcio.archiveiterator import ArchiveIterator

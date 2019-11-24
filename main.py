@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sun Nov 24 13:24:11 2019
-
-@author: felixjff
+Entity recognition
 """
 
 from EntityLinkingClass import EntityLinking
