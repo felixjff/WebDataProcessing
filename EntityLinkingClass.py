@@ -20,8 +20,9 @@ class EntityLinking(object):
         self.candidates = None
         self.result = None
         self.tagger = None
+        self.st = None
         
-    def remove_tags(element):
+    def remove_tags(self, element):
         '''
             Defines which tags are excluded from the HTML file
         '''
@@ -44,18 +45,19 @@ class EntityLinking(object):
                          # check if the response is http
                          if record.http_headers != None:
                              # Get the WARC-RECORD-ID
-                             record_id = record.rec_headers.get_header(record_attribute)
-                             # Clean up the HTML using BeautifulSoup
-                             html = record.content_stream().read()
-                             soup = BeautifulSoup(html, "html5lib")
-                             data = soup.findAll(text=True)#.encode()
-                             result = filter(self.remove_tags, data)
-                             result2 = ' '.join(result)
-                             result2 = ' '.join(result2.split())
-                             # Build up the resulting list.
-                             result2 = result2.encode('ascii', errors="ignore").decode('ascii') # Removing all strange characters like emojis
-                             if result2 != '' and isinstance(result2, str):
-                                 html_pages_array.append([record_id, result2])
+                             if record.rec_headers.get_header(record_attribute):
+                                 record_id = record.rec_headers.get_header(record_attribute)
+                                 # Clean up the HTML using BeautifulSoup
+                                 html = record.content_stream().read()
+                                 soup = BeautifulSoup(html, "html5lib")
+                                 data = soup.findAll(text=True)#.encode()
+                                 result = filter(self.remove_tags, data)
+                                 result2 = ' '.join(result)
+                                 result2 = ' '.join(result2.split())
+                                 # Build up the resulting list.
+                                 result2 = result2.encode('ascii', errors="ignore").decode('ascii') # Removing all strange characters like emojis
+                                 if result2 != '' and isinstance(result2, str):
+                                     html_pages_array.append([record_id, result2])
          except Exception:
              print("Something went wrong with the archive entry")
     
@@ -64,10 +66,11 @@ class EntityLinking(object):
     
     def initialize_tagger(self, tagger):
         if tagger == 'StanfordNERTagger':
+            self.tagger = tagger
             # 3 class model for recognizing locations, persons, and organizations
-            self.tagger = StanfordNERTagger('./tools/stanford-ner/classifiers/english.all.3class.distsim.crf.ser.gz',
-                                            './tools/stanford-ner/stanford-ner.jar',
-                                            encoding='utf-8')
+            self.st = StanfordNERTagger('./tools/stanford-ner/classifiers/english.all.3class.distsim.crf.ser.gz',
+                                        './tools/stanford-ner/stanford-ner.jar',
+                                        encoding='utf-8')
         if tagger == 'nlkt':
             nltk.download('maxent_ne_chunker')
             nltk.download('words')
@@ -80,24 +83,22 @@ class EntityLinking(object):
     def categorize(self, tokenized_text):
         # Named entity recognition
         if self.tagger != 'nlkt':
-            return self.tagger.tag(tokenized_text)
+            return self.st.tag(tokenized_text)
         else:
             return nltk.pos_tag(tokenized_text)
     
-    def nlkt_entities(self, record, tagged_text):
+    def extract_entities(self, record_id, tagged_text):
         entity_list = []
         for tupple in tagged_text:
-            if tupple[1] == 'NNP':
-                entity_list.append((record, tupple[0], tupple[1]))
-    
-    def st_entities(self, record, tagged_text):
-        entity_list = []
-        for tupple in tagged_text:
-            if tupple[1] != 'O':
-                entity_list.append((record, tupple[0], tupple[1]))
+            if tupple[1] == 'NNP' and self.tagger == 'nlkt':
+                entity_list.append((record_id, tupple[0], tupple[1]))
+            elif tupple[1] != 'O' and self.tagger == 'StanfordNERTagger':
+                entity_list.append((record_id, tupple[0], tupple[1]))
+        
+        return entity_list
         
     def store_entities(self, output):
-        with open('data/sample-output' +input[0][12:-1]+ '.csv', 'w', newline='') as myfile:
-            wr = csv.writer(myfile, quoting=csv.QUOTE_ALL, delimiter=';')
-            wr.writerow(output)
+        with open('data/sample-output.tsv', 'w', newline='') as myfile:
+            for e in output:
+                myfile.write(e[0] + "\t" + e[1] + "\n")
     
