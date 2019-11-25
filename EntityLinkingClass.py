@@ -98,7 +98,7 @@ class EntityLinking(object):
         return entity_list
         
     def store_entities(self, output):
-        with open('data/sample-output.tsv', 'w', newline='') as myfile:
+        with open('data/sample-output.tsv', 'a', newline='') as myfile:
             for e in output:
                 myfile.write(e[0] + "\t" + e[1] + "\n")
     
