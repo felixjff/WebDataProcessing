@@ -87,12 +87,19 @@ class EntityRecognition(object):
         else:
             return nltk.pos_tag(tokenized_text)
     
-    def extract_entities(self, record_id, tagged_text):
+    def extract_entities(self, record_id, tagged_text, spacy_ents = True):
         entity_list = []
-        for tupple in tagged_text:
-            if self.tagger == "spacy":
-                entity_list.append((record_id, tupple.text, tupple.tag_))
+        if self.tagger == 'spacy':
+            # By default use the statistical model trained by spacy and the entities thereof.
+            if spacy_ents:
+                for e in tagged_text.ents:
+                    if e.label_ not in ['DATE', 'TIME', 'PERCENT', 'MONEY', 'QUANTITY', 'ORDINAL', 'CARDINAL']:
+                        entity_list.append((record_id, e, e.label_))
             else:
+                for tupple in tagged_text:
+                    entity_list.append((record_id, tupple.text, tupple.tag_))
+        else:
+            for tupple in tagged_text:
                 entity_list.append((record_id, tupple[0], tupple[1]))
         return entity_list
         
