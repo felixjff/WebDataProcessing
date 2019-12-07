@@ -125,9 +125,9 @@ class EntityLinking(ElasticSearch):
         link = 0
         score = 0
         if method == 'Exact Matching':
-        elif method == 'Levenshtein':
             score = 1 if string1 == string2 else 0
             link = 1 if socre else 0
+        elif method == 'Levenshtein':
             score = Levenshtein.ratio(string1, string2)
             link = 1 if score > threshold else 0
         elif method ==  'Sequence Matching':
