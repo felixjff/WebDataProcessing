@@ -4,17 +4,18 @@
 Entity recognition
 """
 
-from EntityLinkingClass import EntityLinking
+from EntityParsingClass import EntityParsing
 
 record_attribute = 'WARC-TREC-ID'
 
-entity_linking = EntityLinking()
+entity_parsing = EntityParsing()
 
-parsed_warc = entity_linking.parse_warc('data/recomp.warc.gz', record_attribute)
+parsed_warc = entity_parsing.parse_warc('data/recomp.warc.gz', record_attribute)
 
-entity_linking.initialize_tagger('StanfordNERTagger')
+entity_parsing.initialize_tagger('StanfordNERTagger')
 for r in parsed_warc:
-    tokenized_record = entity_linking.tokenize(r[1])
-    categorized_record = entity_linking.categorize(tokenized_record)
-    entities = entity_linking.extract_entities(r[0], categorized_record)
-    entity_linking.store_entities(entities)
+    tokenized_record = entity_parsing.tokenize(r[1])
+    categorized_record = entity_parsing.categorize(tokenized_record)
+    entities = entity_parsing.extract_entities(r[0], categorized_record)
+    entity_parsing.store_entities(entities)
+print()
