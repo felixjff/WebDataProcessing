@@ -3,7 +3,6 @@
 """
 Entity recognition
 """
-
 # Import entity linking class with methods
 from EntityLinkingClass import EntityLinking
 

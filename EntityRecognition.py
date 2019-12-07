@@ -4,7 +4,7 @@
 Entity recognition workflow
 """
 
-# Import entity linking class with methods
+# Import entity recognition class with methods
 from WebDataProcessing import EntityRecognition
 import time
 import concurrent.futures

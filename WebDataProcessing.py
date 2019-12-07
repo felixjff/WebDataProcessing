@@ -106,13 +106,13 @@ class EntityRecognition(object):
 ##############################################################################
 
 import codecs, difflib, Levenshtein, distance
+from ElasticSearchClass import ElasticSearch 
 
-
-class EntityLinking(object):
+class EntityLinking(ElasticSearch):
     def __init__(self):    
         self.holder = None
         
-    def import_candidates(self):
+    def import_entities(self):
         entities = []
         # Load file with all recognized entity surface forms and the IDs of the documents they were found on.
         with open("data/sample-output.tsv") as tsv:
@@ -159,6 +159,7 @@ class EntityLinking(object):
         # Return Freebase ID
         return entity_candidates[-1][1]
     
-    
+    def search_freebase(self, query):
+        return self.search(self.DOMAIN, query)
                     
                         
