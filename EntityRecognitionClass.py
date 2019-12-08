@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Entity Linking class
+Entity Recognition class
 """
 
 from warcio.archiveiterator import ArchiveIterator
@@ -113,7 +113,7 @@ class EntityRecognition(object):
         
         return word
     
-    def extract_entities(self, record_id, tagged_text, spacy_ents = False):
+    def extract_entities(self, record_id, tagged_text, spacy_ents = True):
         entity_list = []
         if self.tagger == 'spacy':
             # By default use the statistical model trained by spacy and the entities thereof.

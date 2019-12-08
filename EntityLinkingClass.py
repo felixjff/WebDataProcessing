@@ -1,3 +1,7 @@
+"""
+Entity Linking class
+"""
+
 import codecs, difflib, Levenshtein, distance
 from ElasticSearchClass import ElasticSearch 
 
