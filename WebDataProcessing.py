@@ -87,6 +87,32 @@ class EntityRecognition(object):
         else:
             return nltk.pos_tag(tokenized_text)
     
+    def tweet_element(self, text):
+        tweet = False
+        if text in ['RT', 'tweet', 'AddThis', 'Button', 'BEGIN', 'Share', '|', 'END', 'A']:
+            tweet = True
+        if 'RT' in text:
+            tweet = True
+        if '@' in text:
+            tweet = True
+        
+        return tweet
+    
+    def lexical(self, text):
+        lexical = True
+        non_lexical = ['=', '/', '<', '>', '\', "."]
+        for i in non_lexical:
+            if i in text:
+                lexical = False
+        return lexical
+    
+    def word(self, text):
+        word = True
+        if len(text) < 3:
+            word = False
+        
+        return word
+    
     def extract_entities(self, record_id, tagged_text, spacy_ents = False):
         entity_list = []
         if self.tagger == 'spacy':
@@ -99,7 +125,8 @@ class EntityRecognition(object):
             else:
                 for tupple in tagged_text:
                     if tupple.tag_ == 'NNP':
-                        entity_list.append((record_id, tupple.text, tupple.tag_))
+                        if not self.tweet_element(tupple.text) and lexical and word:
+                            entity_list.append((record_id, tupple.text, tupple.tag_))
         else:
             for tupple in tagged_text:
                 entity_list.append((record_id, tupple[0], tupple[1]))

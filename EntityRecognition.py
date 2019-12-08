@@ -20,6 +20,9 @@ tagger = "spacy"
 def extract_entities2(record):
     try:
         categorized_record = entity_recognition.categorize(record[1])
+        
+        ''''HERE ADD ANOTHER FUNCTION THAT CREATES ENTITIES OF MORE THAN ONE WORD, example names + surnames'''
+        
         entities = entity_recognition.extract_entities(record[0], categorized_record)
     except Exception as e:
         print(e)
