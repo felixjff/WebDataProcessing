@@ -87,31 +87,24 @@ class EntityRecognition(object):
         else:
             return nltk.pos_tag(tokenized_text)
     
-    def tweet_element(self, text):
-        tweet = False
+    def is_tweet_element(self, text):
         if text in ['RT', 'tweet', 'AddThis', 'Button', 'BEGIN', 'Share', '|', 'END', 'A']:
-            tweet = True
+            return True
         if 'RT' in text:
-            tweet = True
+            return True
         if '@' in text:
-            tweet = True
-        
-        return tweet
+            return True
+        return False
     
-    def lexical(self, text):
-        lexical = True
+    def is_lexical(self, text):
         non_lexical = ["=", "/", "<", ">", ".", '^', '!', '[', ']', '$', '#', '%', '*', '(', ')', '+', '_', '~']
         for i in non_lexical:
             if i in text:
-                lexical = False
-        return lexical
+                return False
+        return True
     
-    def word(self, text):
-        word = True
-        if len(text) < 3:
-            word = False
-        
-        return word
+    def is_word(self, text):
+        return len(text) >= 3
     
     def extract_entities(self, record_id, tagged_text, spacy_ents = True):
         entity_list = []
@@ -125,7 +118,7 @@ class EntityRecognition(object):
             else:
                 for tupple in tagged_text:
                     if tupple.tag_ == 'NNP':
-                        if not self.tweet_element(tupple.text) and self.lexical(tupple.text) and self.word(tupple.text):
+                        if not self.is_tweet_element(tupple.text) and self.is_lexical(tupple.text) and self.is_word(tupple.text):
                             entity_list.append((record_id, tupple.text, tupple.tag_))
         else:
             for tupple in tagged_text:
@@ -135,4 +128,7 @@ class EntityRecognition(object):
     def store_entities(self, output):
         with open('data/sample-output.tsv', 'a', newline='') as myfile:
             for e in output:
-                myfile.write(e[0] + "\t" + e[1] + "\t" + e[2] + "\n")
+                try:
+                    myfile.write(str(e[0]) + "\t" + str(e[1]) + "\t" + str(e[2]) + "\n")
+                except Exception as e:
+                    print(e)
