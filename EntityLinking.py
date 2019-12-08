@@ -14,7 +14,7 @@ entities = entity_linking.import_entities()
 #Query candidate Freebase matches using ElasticSearch server
 candidates = {}
 for e in entities:
-    # Dictionary stores all candidates found on Freebase per entity
+    # Dictionary stores all candidates and their scores found on Freebase per entity
     candidates[e[1]] = entity_linking.search_freebase()
     print('Found '+str(len(candidates[e[1]]))+" candidates for entity "+ e[1])
     

@@ -100,7 +100,7 @@ class EntityRecognition(object):
     
     def lexical(self, text):
         lexical = True
-        non_lexical = ["=", "/", "<", ">", "."]
+        non_lexical = ["=", "/", "<", ">", ".", '^', '!', '[', ']', '$', '#', '%', '*', '(', ')', '+', '_', '~']
         for i in non_lexical:
             if i in text:
                 lexical = False
