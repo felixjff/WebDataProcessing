@@ -1,2 +1,3 @@
 *.pyc
 data/sample-output.tsv
+.env/
