@@ -125,7 +125,7 @@ class EntityRecognition(object):
             else:
                 for tupple in tagged_text:
                     if tupple.tag_ == 'NNP':
-                        if not self.tweet_element(tupple.text) and lexical and word:
+                        if not self.tweet_element(tupple.text) and self.lexical(tupple.text) and self.word(tupple.text):
                             entity_list.append((record_id, tupple.text, tupple.tag_))
         else:
             for tupple in tagged_text:
