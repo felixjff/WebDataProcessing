@@ -20,7 +20,6 @@ python -m spacy download en_core_web_sm
 # Recompress warc file:
 warcio recompress path/to/file path/to/new_file
 
-
 # for linking:
 pip install python-Levenshtein
 pip install Distance
