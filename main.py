@@ -6,7 +6,10 @@ Entity recognition workflow
 
 # Import entity recognition class with methods
 from EntityRecognitionClass import EntityRecognition
+<<<<<<< HEAD
 from EntityLinkingClass import EntityLinking
+=======
+>>>>>>> 56fb5f8fac5af905cb66e586863d685f0aba0bf7
 import time
 import concurrent.futures
 import threading
@@ -22,9 +25,7 @@ tagger = "spacy"
 def extract_entities2(record):
     try:
         categorized_record = entity_recognition.categorize(record[1])
-        
-        ''''HERE ADD ANOTHER FUNCTION THAT CREATES ENTITIES OF MORE THAN ONE WORD, example names + surnames'''
-        
+
         entities = entity_recognition.extract_entities(record[0], categorized_record)
         entity_candidate = entity_linking.local_kdb_file_linking(entities[0], method = 'Sequence Matching', threshold =0)
         print("CANDIDATE ENTITY")
