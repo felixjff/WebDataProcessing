@@ -5,7 +5,8 @@ Entity recognition workflow
 """
 
 # Import entity recognition class with methods
-from WebDataProcessing import EntityRecognition
+from EntityRecognitionClass import EntityRecognition
+from EntityLinkingClass import EntityLinking
 import time
 import concurrent.futures
 import threading
@@ -16,6 +17,7 @@ lock = threading.Lock()
 afterParse = time.time()
 tagger = "spacy"
 
+
 # For spacy:
 def extract_entities2(record):
     try:
@@ -24,10 +26,13 @@ def extract_entities2(record):
         ''''HERE ADD ANOTHER FUNCTION THAT CREATES ENTITIES OF MORE THAN ONE WORD, example names + surnames'''
         
         entities = entity_recognition.extract_entities(record[0], categorized_record)
+        entity_candidate = entity_linking.local_kdb_file_linking(entities[0], method = 'Sequence Matching', threshold =0)
+        print("CANDIDATE ENTITY")
     except Exception as e:
         print(e)
     with lock:
         entity_recognition.store_entities(entities)
+    
     print("extracted ",len(entities)," in ",time.time() - afterParse," seconds")
     
 # For nlkt and Stanford:
@@ -49,6 +54,9 @@ record_attribute = 'WARC-TREC-ID'
 
 # Initialize entity recognition object
 entity_recognition = EntityRecognition()
+
+# Initialize entity linking object
+entity_linking = EntityLinking()
 
 # Parse all records in warc file by removing html tags and headers.
 parsed_warc = entity_recognition.parse_warc('data/recomp.warc.gz', record_attribute)

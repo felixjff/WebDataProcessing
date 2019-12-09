@@ -1,4 +1,4 @@
-import codecs, difflib, Levenshtein, distance
+import codecs, difflib, Levenshtein, distance, csv
 from ElasticSearchClass import ElasticSearch 
 
 class EntityLinking(ElasticSearch):
@@ -19,26 +19,24 @@ class EntityLinking(ElasticSearch):
         score = 0
         if method == 'Exact Matching':
             score = 1 if string1 == string2 else 0
-            link = 1 if socre else 0
-        elif method == 'Levenshtein':
-            score = Levenshtein.ratio(string1, string2)
-            link = 1 if score > threshold else 0
+            link = 1 if score else 0
         elif method ==  'Sequence Matching':
             score = difflib.SequenceMatcher(None, string1, string2).ratio()
             link = 1 if score > threshold else 0
+        """elif method == 'Levenshtein':
+            score = Levenshtein.ratio(string1, string2)
+            link = 1 if score > threshold else 0
         elif method == 'Sorensen':
-            score = 1 - distance.sorensen(string1, string2) 
+            score = 1 - distLevenshteinance.jaccard(string1, string2)
             link = 1 if score > threshold else 0
-        elif method == 'Jaccard':
-            score = 1 - distance.jaccard(string1, string2)
-            link = 1 if score > threshold else 0
+        """
         
         if link:
             return link, score 
         else: 
             return None, None
     
-    def local_kdb_file_linking(self, entity, file, method, threshold = None):
+    def local_kdb_file_linking(self, entity, method, file = None, threshold = None):
         # Open local KDB file
         with open("data/sample-labels-cheat.txt") as tsv:
             # Extract the candidate entities from the KDB together with their Freebase entity IDs and similarity score
