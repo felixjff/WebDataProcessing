@@ -82,7 +82,7 @@ class triquery(object):
     return "people.person" in fb_types(fb_id) 
   
   def fb_has_name(self, fb_id : str, name : str):
-    return fb_id in fb_id 
+    return name in fb_id 
   
     
   def fb_wiki_links(self, fb_id : str):
