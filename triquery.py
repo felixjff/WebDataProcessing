@@ -32,8 +32,8 @@ PREFIX = """
 # Queries can either be normal or raw. Normal queries
 # have prefixes as defined above included. Raw queries don't.
 class triquery(object):
-  
-  self.db = trident.Db(TRIDENT_PATH)
+  def __init__(self):
+    self.db = trident.Db(TRIDENT_PATH)
   
   #run elastic search query
   def el(s : str):
