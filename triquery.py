@@ -36,28 +36,28 @@ class triquery(object):
     self.db = trident.Db(TRIDENT_PATH)
   
   #run elastic search query
-  def el(self, s : str):
+  def el(self, s):
     url = 'http://%s/freebase/label/_search'
     return requests.get(url % ELASTIC_SEARCH_HOST, params={'q' : s, 'size': 1000})
 
   #run a raw query without any prefixes
-  def rq(self, query : str):
+  def rq(self, query):
       return self.db.sparql(query)
 
   #run a normal query with standard prefixes
-  def q(self, query : str):
+  def q(self, query):
       return self.db.sparql(PREFIX + query)
 
   #pretty print json
-  def pp(self, s :str):
+  def pp(self, s):
       pprint.pprint(json.loads(s))
   
   #run query and pretty print
-  def pq(self, query : str):
+  def pq(self, query):
       pp(str(q(query)))
       
   
-  def fb_names(self, fb_id : str):
+  def fb_names(self, fb_id):
     qu = """
       SELECT ?o
       WHERE {
@@ -69,7 +69,7 @@ class triquery(object):
     """
     return q(qu % fb_id)
   
-    def fb_types(self, fb_id : str):
+    def fb_types(self, fb_id):
       qu = """
         SELECT ?o
         WHERE {
@@ -78,14 +78,14 @@ class triquery(object):
       """
       return q(qu % fb_id)
   
-  def fb_is_person(self, fb_id : str):
+  def fb_is_person(self, fb_id):
     return "people.person" in fb_types(fb_id) 
   
-  def fb_has_name(self, fb_id : str, name : str):
+  def fb_has_name(self, fb_id, name):
     return str in fb_id 
   
     
-  def fb_wiki_links(self, fb_id : str):
+  def fb_wiki_links(self, fb_id):
     query = """
         SELECT ?o
         WHERE {
