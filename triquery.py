@@ -79,7 +79,7 @@ class triquery(object):
       return q(qu % fb_id)
   
   def fb_is_person(self, fb_id : str):
-    return "people.person" in fb_types(fb_id) 
+    return "people.person" in self.fb_types(fb_id) 
   
   def fb_has_name(self, fb_id : str, name : str):
     return name in fb_id 
