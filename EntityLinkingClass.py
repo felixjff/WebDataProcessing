@@ -74,7 +74,7 @@ class EntityLinking(ElasticSearch):
         single_match_candidate_entities = []
         multiple_match_candidate_entities = []
         
-        for token in tokens[0:1000]:
+        for token in tokens:
             
             elastic_search_result = self.search_elasticsearch(token[1])
             print(elastic_search_result)
