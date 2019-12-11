@@ -59,7 +59,7 @@ afterParse = time.time()
 print("parsed ",len(parsed_warc)," in ",time.time() - start," seconds")
 
 # Initialize the tagger to be used.
-entity_recognition.initialize_tagger(tagger)
+entity_recognition.initialize_tagger(tagger) 
 
 with concurrent.futures.ThreadPoolExecutor(max_workers=500) as executor:
     if tagger == "spacy":
@@ -69,6 +69,9 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=500) as executor:
 
 end = time.time()
 print("end: ",end - start)
+
+single_match, multiple_match, unmatched = entity_linking.get_elasticsearch_candidate_entities()
+
 
 
 

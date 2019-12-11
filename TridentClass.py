@@ -36,19 +36,20 @@ class TridentStub(object):
         PREFIX wds: <http://www.wikidata.org/entity/statement/>
         PREFIX wdv: <http://www.wikidata.org/value/>
         PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+        
         """
 
     def compute_query(self, spacy_type: str) -> str:
         
         if spacy_type == self.SPACY_TYPES["PERSON"]:
             query = """
-            SELECT ?child
-            WHERE
-            {
-            #  child "has parent" Bach
-            ?child parent Bach.
-            # (note: everything after a ‘#’ is a comment and ignored by WDQS.)
-            }"""
+SELECT ?child
+WHERE
+{
+# ?child  father   Bach
+  ?child wdt:P22 wd:Q1339.
+}
+"""
 
         elif spacy_type == self.SPACY_TYPES["NORP"]:
             query = """ insert good query """
