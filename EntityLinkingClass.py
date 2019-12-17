@@ -6,10 +6,12 @@ import csv, codecs, difflib, Levenshtein, distance
 from ElasticSearchClass import ElasticSearch 
 
 class Entity():
-    def __init__(self, token: str):
-        self.token = token
+    def __init__(self, doc_id: str, surface_form: str, spacy_type: str):
+        self.surface_form = surface_form
+        self.doc_id = doc_id
+        self.spacy_type = spacy_type
         self.linked_entity = dict()
-        self.candidates_entities = []
+        self.candidates_entities = []        
 
 class EntityLinking(ElasticSearch):
     def __init__(self):    
@@ -17,18 +19,18 @@ class EntityLinking(ElasticSearch):
         self.elastic_search = ElasticSearch()
         
     def import_entities(self):
-        entities = []
+        entities = list()
         # Load file with all recognized entity surface forms and the IDs of the documents they were found on.
         with open("data/sample-output.tsv") as tsv:
             for line in csv.reader(tsv, dialect="excel-tab"):
-                entities.append(line)
+                entity = Entity(line[0], line[1],  line[2])
+                entities.append(entity)
         
         return entities
 
     def similar(self, method, threshold, string1, string2):
         link = 0
         score = 0
-
         
         if method == 'Exact Matching':
             score = 1 if string1 == string2 else 0
@@ -75,49 +77,60 @@ class EntityLinking(ElasticSearch):
     #   - single entities match
     #   - multiple entities match [to disambiguate via trident] 
     def get_elasticsearch_candidate_entities(self):
-        tokens = self.import_entities()
+        entities = self.import_entities()
 
         unmatched_tokens = []
         single_match_candidate_entities = []
         multiple_match_candidate_entities = []
         
-        for token in tokens[0:1000]:
+        for entity in entities[0:1000]:
             #print(token[2])
             
-            elastic_search_result = self.search_elasticsearch(token[1])
+            elastic_search_result = self.search_elasticsearch(entity.surface_form)
             #print(elastic_search_result)
             
             if len(elastic_search_result) > 1:
-                entity = Entity(token[2])
+                #entity = Entity(token[0], token[1], token[2])
                 entity.candidates_entities.append(elastic_search_result)
                 multiple_match_candidate_entities.append(entity)
-            elif len(elastic_search_result) == 1:
 
-                entity = Entity(token[2])
+            elif len(elastic_search_result) == 1:
+                #entity = Entity(token[0], token[1], token[2])
                 entity.linked_entity = elastic_search_result
                 single_match_candidate_entities.append(entity)
 
             elif len(elastic_search_result) == 0:
-                unmatched_tokens.append(token)
+                #entity = Entity(token[0], token[1],  token[2])
+                unmatched_tokens.append(entity)
             
         return single_match_candidate_entities,multiple_match_candidate_entities, unmatched_tokens
+
+    def file_write_entities(self, entities: list(), file_path: str):   
+        with open(file_path, 'a', newline='') as myfile:
+            for ent in entities:
+                try:
+                    myfile.write(str(ent.doc_id) + "\t" + str(ent.surface_form) +"\n")
+                except Exception as e:
+                    print(e)
 
 
 if __name__ == "__main__" :
     print("--- TESTIN entity linking")
     entity_linking = EntityLinking()
     # entities = entity_linking.import_entities()
-    # print("--- looking into elastic search for " + entities[0][1] + " \n")
+    # print("--- looking into elastic search for " + str(entities[0]) + " \n")
     # fb_result = self.search_elasticsearch(entities[0][1])
     # print("--- The result is :\n")
     # print(fb_result)
+    
     s, m, u = entity_linking.get_elasticsearch_candidate_entities()
 
     print("single match found -> ", len(s))
-    print("multiple match found -> ", len(s))
-    print("unmatch found -> ", len(s))
+    print("multiple match found -> ", len(m))
+    print("unmatch found -> ", len(u))
 
     if(len(s) > 1):
-        print("\ntoken .> ", s[0].token)
-        print("\nentity -> ", s[0].linked_entity)
+        print("\nsurface_form .> ", s[0].surface_form)
+        print("\nlinked_entity -> ", s[0].linked_entity)
+        
 
