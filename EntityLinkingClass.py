@@ -5,6 +5,12 @@ Entity Linking class
 import csv, codecs, difflib, Levenshtein, distance
 from ElasticSearchClass import ElasticSearch 
 
+class Entity():
+    def __init__(self, token: str):
+        self.token = token
+        self.linked_entity = dict()
+        self.candidates_entities = []
+
 class EntityLinking(ElasticSearch):
     def __init__(self):    
         self.holder = None
@@ -61,6 +67,8 @@ class EntityLinking(ElasticSearch):
     def search_elasticsearch(self, query):
         return self.elastic_search.search(self.elastic_search.DOMAIN, query)
 
+    # def write_in_file_single_match_entities(self, )
+
     # this method reads the parsed tokes from file and
     # searchs for candidates entities in elasticsearch
     # returns two lists:
@@ -68,23 +76,48 @@ class EntityLinking(ElasticSearch):
     #   - multiple entities match [to disambiguate via trident] 
     def get_elasticsearch_candidate_entities(self):
         tokens = self.import_entities()
-        # print(tokens[1][1])
 
         unmatched_tokens = []
         single_match_candidate_entities = []
         multiple_match_candidate_entities = []
         
-        for token in tokens:
+        for token in tokens[0:1000]:
+            #print(token[2])
             
             elastic_search_result = self.search_elasticsearch(token[1])
-            print(elastic_search_result)
+            #print(elastic_search_result)
             
             if len(elastic_search_result) > 1:
-                multiple_match_candidate_entities.append(elastic_search_result)
+                entity = Entity(token[2])
+                entity.candidates_entities.append(elastic_search_result)
+                multiple_match_candidate_entities.append(entity)
             elif len(elastic_search_result) == 1:
-                single_match_candidate_entities.append(elastic_search_result)
+
+                entity = Entity(token[2])
+                entity.linked_entity = elastic_search_result
+                single_match_candidate_entities.append(entity)
+
             elif len(elastic_search_result) == 0:
                 unmatched_tokens.append(token)
             
-        return single_match_candidate_entities, multiple_match_candidate_entities, unmatched_tokens
+        return single_match_candidate_entities,multiple_match_candidate_entities, unmatched_tokens
+
+
+if __name__ == "__main__" :
+    print("--- TESTIN entity linking")
+    entity_linking = EntityLinking()
+    # entities = entity_linking.import_entities()
+    # print("--- looking into elastic search for " + entities[0][1] + " \n")
+    # fb_result = self.search_elasticsearch(entities[0][1])
+    # print("--- The result is :\n")
+    # print(fb_result)
+    s, m, u = entity_linking.get_elasticsearch_candidate_entities()
+
+    print("single match found -> ", len(s))
+    print("multiple match found -> ", len(s))
+    print("unmatch found -> ", len(s))
+
+    if(len(s) > 1):
+        print("\ntoken .> ", s[0].token)
+        print("\nentity -> ", s[0].linked_entity)
 
