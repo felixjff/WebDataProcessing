@@ -109,7 +109,7 @@ class EntityLinking(ElasticSearch):
         with open(file_path, 'a', newline='') as myfile:
             for ent in entities:
                 try:
-                    myfile.write(str(ent.doc_id) + "\t" + str(ent.surface_form) +"\n")
+                    myfile.write(str(ent.doc_id) + "\t" + str(ent.surface_form) + "\t" + list(ent.linked_entity.keys())[0] + "\n")
                 except Exception as e:
                     print(e)
 
@@ -132,5 +132,7 @@ if __name__ == "__main__" :
     if(len(s) > 1):
         print("\nsurface_form .> ", s[0].surface_form)
         print("\nlinked_entity -> ", s[0].linked_entity)
+
+    entity_linking.file_write_entities(s, "test/test-output.tsv")
         
 
