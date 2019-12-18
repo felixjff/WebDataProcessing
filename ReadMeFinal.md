@@ -1,3 +1,4 @@
+# wdps2019
 Web Data Processing Systems 2019 (VU course XM_40020)
 Group: 13 
 
@@ -9,7 +10,6 @@ retrieve entities from records of web content from a variety of sources, generat
 from one or multiple knowledge bases and link the entity to the most appropriate candidate. The program 
 should return in output a three-column tab-separated file with document IDs, entity surface forms (like
 "Berlin"), and Freebase entity IDs (like "/m/03hrz").  
-
 
 ## Set-up
 
@@ -54,3 +54,7 @@ WARC record ID. The file is named sample-output.tsv.
 
 
 ## Entitity Linking
+
+
+# Running Instructions:
+- Bash Run run.sh
