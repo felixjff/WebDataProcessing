@@ -6,10 +6,11 @@ import csv, codecs, difflib, Levenshtein, distance
 from ElasticSearchClass import ElasticSearch 
 
 class Entity():
-    def __init__(self, doc_id: str, surface_form: str, spacy_type: str):
+    def __init__(self, doc_id: str, surface_form: str, spacy_type: str, context:str):
         self.surface_form = surface_form
         self.doc_id = doc_id
         self.spacy_type = spacy_type
+        self.context = context
         self.linked_entity = dict()
         self.candidates_entities = dict()
 
@@ -26,7 +27,7 @@ class EntityLinking(ElasticSearch):
         # Load file with all recognized entity surface forms and the IDs of the documents they were found on.
         with open("data/sample-output.tsv") as tsv:
             for line in csv.reader(tsv, dialect="excel-tab"):
-                entity = Entity(line[0], line[1],  line[2])
+                entity = Entity(line[0], line[1],  line[2], line[3])
                 entities.append(entity)
         
         return entities
@@ -124,7 +125,6 @@ class EntityLinking(ElasticSearch):
             entity.linked_entity = get_candidate_entity_with_higher_avg_score(entity)
 
     def discriminate_on_elasticsearch_score_and_similarity(self, entities: list):
-
         def avg(my_list :list ) -> float: 
             return sum(my_list) / len(my_list)
 
