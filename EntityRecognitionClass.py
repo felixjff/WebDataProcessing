@@ -22,16 +22,6 @@ class EntityRecognition(object):
         self.tagger = None
         self.st = None
         self.nlp = None
-        
-    def remove_tags(self, element):
-        '''
-            Defines which tags are excluded from the HTML file
-        '''
-        if element.parent.name in ['style', 'script', '[document]', 'head', 'title']:
-            return False
-        elif re.match('<!--.*-->', element):
-            return False
-        return True
     
     def parse_warc(self, file, record_attribute):
         '''
@@ -46,14 +36,12 @@ class EntityRecognition(object):
                         # Clean up the HTML using BeautifulSoup
                         html = record.content_stream().read()
                         soup = BeautifulSoup(html, "html5lib")
-                        data = soup.findAll(text=True)#.encode()
-                        result = filter(self.remove_tags, data)
-                        result2 = ' '.join(result)
-                        result2 = ' '.join(result2.split())
-                        # Build up the resulting list.
-                        result2 = result2.encode('ascii', errors="ignore").decode('ascii') # Removing all strange characters like emojis
-                        if result2 != '' and isinstance(result2, str):
-                            html_pages_array.append([record_id, result2])
+                        data = [t for t in soup.find_all(text=True) if t.parent.name not in ['style', 'script', '[document]', 'head']]
+                        result = "".join(data)
+                        result = result.encode('ascii', errors="ignore").decode('ascii') # Removing all strange characters like emojis
+                        result = " ".join(result.split())
+                        if len(result) > 0:
+                            html_pages_array.append([record_id, str(result)])
         except Exception as e: 
             print(e)
     
@@ -88,11 +76,13 @@ class EntityRecognition(object):
             return nltk.pos_tag(tokenized_text)
     
     def is_tweet_element(self, text):
-        if text in ['RT', 'tweet', 'AddThis', 'Button', 'BEGIN', 'Share', '|', 'END', 'A']:
+        if text in ['RT', 'tweet', 'AddThis', 'Button', 'BEGIN', 'Share', '|', 'END', 'A', 'Reply']:
             return True
         if 'RT' in text:
             return True
         if '@' in text:
+            return True
+        if '#' in text:
             return True
         return False
     
@@ -106,15 +96,19 @@ class EntityRecognition(object):
     def is_word(self, text):
         return len(text) >= 3
     
-    def extract_entities(self, record_id, tagged_text, spacy_ents = True):
+    def get_context(self, string, mention, n) :
+        lh, _, rh = string.partition(mention)
+        return ' '.join(lh.split()[-n:]+[mention]+rh.split()[:n])
+    
+    def extract_entities(self, record_id, tagged_text, original_text, spacy_ents = True):
         entity_list = []
         if self.tagger == 'spacy':
             # By default use the statistical model trained by spacy and the entities thereof.
             if spacy_ents:
                 entities = tagged_text.ents
                 for e in entities:
-                    if e.label_ not in ['DATE', 'TIME', 'PERCENT', 'MONEY', 'QUANTITY', 'ORDINAL', 'CARDINAL']:
-                        entity_list.append((record_id, e, e.label_))
+                    if self.is_word(str(e)) and not self.is_tweet_element(str(e)) and e.label_ not in ['DATE', 'TIME', 'PERCENT', 'MONEY', 'QUANTITY', 'ORDINAL', 'CARDINAL']:
+                        entity_list.append((record_id, e, e.label_, self.get_context(original_text, str(e), 3)))
             else:
                 for tupple in tagged_text:
                     if tupple.tag_ == 'NNP':
@@ -129,6 +123,6 @@ class EntityRecognition(object):
         with open('data/sample-output.tsv', 'a', newline='') as myfile:
             for e in output:
                 try:
-                    myfile.write(str(e[0]) + "\t" + str(e[1]) + "\t" + str(e[2]) + "\n")
+                    myfile.write(str(e[0]) + "\t" + str(e[1]) + "\t" + str(e[2]) + "\t{" + str(e[3]) + "}\n")
                 except Exception as e:
                     print(e)

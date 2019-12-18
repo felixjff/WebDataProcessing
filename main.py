@@ -22,7 +22,7 @@ tagger = "spacy"
 def extract_entities2(record):
     try:
         categorized_record = entity_recognition.categorize(record[1])
-        entities = entity_recognition.extract_entities(record[0], categorized_record)
+        entities = entity_recognition.extract_entities(record[0], categorized_record, record[1])
     except Exception as e:
         print(e)
     with lock:
