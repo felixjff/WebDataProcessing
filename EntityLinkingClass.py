@@ -11,12 +11,15 @@ class Entity():
         self.doc_id = doc_id
         self.spacy_type = spacy_type
         self.linked_entity = dict()
-        self.candidates_entities = []        
+        self.candidates_entities = dict()
 
 class EntityLinking(ElasticSearch):
     def __init__(self):    
         self.holder = None
         self.elastic_search = ElasticSearch()
+        self.unmatched_entities = []
+        self.single_match_candidate_entities = []
+        self.multiple_match_candidate_entities = []
         
     def import_entities(self):
         entities = list()
@@ -69,8 +72,6 @@ class EntityLinking(ElasticSearch):
     def search_elasticsearch(self, query):
         return self.elastic_search.search(self.elastic_search.DOMAIN, query)
 
-    # def write_in_file_single_match_entities(self, )
-
     # this method reads the parsed tokes from file and
     # searchs for candidates entities in elasticsearch
     # returns two lists:
@@ -78,12 +79,8 @@ class EntityLinking(ElasticSearch):
     #   - multiple entities match [to disambiguate via trident] 
     def get_elasticsearch_candidate_entities(self):
         entities = self.import_entities()
-
-        unmatched_tokens = []
-        single_match_candidate_entities = []
-        multiple_match_candidate_entities = []
         
-        for entity in entities[0:1000]:
+        for entity in entities[0:100]:
             #print(token[2])
             
             elastic_search_result = self.search_elasticsearch(entity.surface_form)
@@ -91,19 +88,17 @@ class EntityLinking(ElasticSearch):
             
             if len(elastic_search_result) > 1:
                 #entity = Entity(token[0], token[1], token[2])
-                entity.candidates_entities.append(elastic_search_result)
-                multiple_match_candidate_entities.append(entity)
+                entity.candidates_entities = elastic_search_result
+                self.multiple_match_candidate_entities.append(entity)
 
             elif len(elastic_search_result) == 1:
                 #entity = Entity(token[0], token[1], token[2])
                 entity.linked_entity = elastic_search_result
-                single_match_candidate_entities.append(entity)
+                self.single_match_candidate_entities.append(entity)
 
             elif len(elastic_search_result) == 0:
                 #entity = Entity(token[0], token[1],  token[2])
-                unmatched_tokens.append(entity)
-            
-        return single_match_candidate_entities,multiple_match_candidate_entities, unmatched_tokens
+                self.unmatched_entities.append(entity)
 
     def file_write_entities(self, entities: list(), file_path: str):   
         with open(file_path, 'a', newline='') as myfile:
@@ -113,6 +108,31 @@ class EntityLinking(ElasticSearch):
                 except Exception as e:
                     print(e)
 
+    #it is meant to have in input the multiple match from elastic search
+    #a and to select the entity from them based on elastic search avg score
+    def discriminate_on_elasticsearch_score(self, entities: list):
+
+        def avg(my_list :list ) -> float: 
+            return sum(my_list) / len(my_list)
+
+        def get_candidate_entity_with_higher_avg_score( entity) -> dict:
+            keys = list( entity.candidates_entities.keys() )
+            max = 0
+            max_key = keys[0]
+
+            #loop on all the freebase id returned by elasticsearch
+            for key in keys:
+                values = list ( entity.candidates_entities[key])
+                # filter only the numbers in elastic search return stuff
+                float_values = [ x for x in values if type(x) is not str ]
+                if avg( float_values ) > max:
+                    max = avg( float_values )
+                    max_key = key
+            return entity.candidates_entities[max_key]
+
+        for entity in entities:
+            entity.linked_entity = get_candidate_entity_with_higher_avg_score(entity)
+                
 
 if __name__ == "__main__" :
     print("--- TESTIN entity linking")
@@ -123,16 +143,32 @@ if __name__ == "__main__" :
     # print("--- The result is :\n")
     # print(fb_result)
     
-    s, m, u = entity_linking.get_elasticsearch_candidate_entities()
+    entity_linking.get_elasticsearch_candidate_entities()
 
-    print("single match found -> ", len(s))
-    print("multiple match found -> ", len(m))
-    print("unmatch found -> ", len(u))
+    print("single match found -> ", len(entity_linking.single_match_candidate_entities))
+    print("multiple match found -> ", len(entity_linking.multiple_match_candidate_entities))
+    print("unmatch found -> ", len(entity_linking.unmatched_entities))
 
+    """
     if(len(s) > 1):
         print("\nsurface_form .> ", s[0].surface_form)
         print("\nlinked_entity -> ", s[0].linked_entity)
+    """
+    """
+    if(len(u) > 1):
+        print("\n----------------UNMATCHED:\n")
+        for un in u:
+            print("\nsurface_form .> ", un.surface_form)
+    """
+    """
+    if(len(ms) > 1):
+        print("\n----------------multi matched:\n")
+        for m in ms:
+            print("\nsurface_form .> ", m.surface_form)
+            print("candidates_entity -> ", m.candidates_entities)
+            print("\n")
+    """
 
-    entity_linking.file_write_entities(s, "test/test-output.tsv")
-        
+    #entity_linking.file_write_entities(s, "test/test-output.tsv")
 
+    entity_linking.discriminate_on_elasticsearch_score(entity_linking.multiple_match_candidate_entities)
