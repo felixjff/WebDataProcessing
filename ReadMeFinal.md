@@ -50,4 +50,7 @@ entities based on trivial rules such as POS tag being "NNP" or entities consisti
 three characters wouldn't result in high quality entity recognition. Specially, we noticed that 
 spaCy could perform high quality entity recognition across different record types such as Tweets. 
 Once the entities are extracted, they are stored into a tab-separated file with their corresponding 
-WARC record ID. 
+WARC record ID. The file is named sample-output.tsv. 
+
+
+## Entitity Linking
