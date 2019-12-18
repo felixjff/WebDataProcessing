@@ -2,6 +2,7 @@ import trident
 import pprint
 import requests
 import sys
+import json
 
 TRIDENT_PATH = "/home/jurbani/data/motherkb-trident"
 ELASTIC_SEARCH_HOST = "node001:9200"
@@ -25,7 +26,6 @@ PREFIX = """
         PREFIX wdt: <http://www.wikidata.org/prop/direct/>
         PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
         PREFIX ps: <http://www.wikidata.org/prop/statement/>
-        
     """
 
 # Wrapper class to easily make queries to trident
@@ -54,9 +54,8 @@ class triquery(object):
   
   #run query and pretty print
   def pq(self, query : str):
-      pp(str(q(query)))
+      self.pp(str(self.q(query)))
       
-  
   def fb_names(self, fb_id : str):
     qu = """
       SELECT ?o
@@ -65,18 +64,17 @@ class triquery(object):
         UNION
         {fbsns:%s fb_label: ?o .} 
       }
-      
     """
-    return q(qu % fb_id)
+    return self.q(qu % fb_id)
   
-    def fb_types(self, fb_id : str):
-      qu = """
-        SELECT ?o
-        WHERE {
-          {fbns:%s fbns:type.object.type ?o .}
-        }
-      """
-      return q(qu % fb_id)
+  def fb_types(self, fb_id : str):
+    qu = """
+      SELECT ?o
+      WHERE {
+        {fbns:%s fbns:type.object.type ?o .}
+      }
+    """
+    return self.q(qu % fb_id)
   
   def fb_is_person(self, fb_id : str):
     return "people.person" in self.fb_types(fb_id) 

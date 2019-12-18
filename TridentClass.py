@@ -2,7 +2,6 @@ import trident
 
 class TridentStub(object):
     def __init__(self):
-        #self.db = trident.Db('/home/jurbani/data/motherkb-trident')
 
         self.SPACY_TYPES={ 
         "PERSON" : "PERSON",    #People, including fictional.
@@ -25,31 +24,40 @@ class TridentStub(object):
         "CARDINAL" : "CARDINAL"   #Numerals that do not fall under another type
         }
 
-        self.db = trident.Db('/home/jurbani/data/motherkb-trident')
-
         self.prefix = """
-        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
         PREFIX owl: <http://www.w3.org/2002/07/owl#>
-        PREFIX fbase: <http://rdf.freebase.com/ns/>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX yago: <http://yago-knowledge.org/resource/>
+        PREFIX dbr: <http://dbpedia.org/resource/>
+        
+        PREFIX fbk: <http://rdf.freebase.com/key/>
+        PREFIX fbns: <http://rdf.freebase.com/ns/>
+          PREFIX fb_label: <http://www.w3.org/2000/01/rdf-schema#label>
+          PREFIX fb_name: <http://rdf.freebase.com/ns/type.object.name>
+          PREFIX fb_wiki_key: <http://rdf.freebase.com/key/wikipedia.en>
+          PREFIX fb_equiv_webp: <http://rdf.freebase.com/ns/common.topic.topic_equivalent_webpage>
         PREFIX wd: <http://www.wikidata.org/entity/>
         PREFIX wds: <http://www.wikidata.org/entity/statement/>
         PREFIX wdv: <http://www.wikidata.org/value/>
         PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-        
+        PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+        PREFIX ps: <http://www.wikidata.org/prop/statement/>
         """
+        self.TRIDENT_PATH = "/home/jurbani/data/motherkb-trident"
+        # self.db = trident.Db(TRIDENT_PATH)
 
-    def compute_query(self, spacy_type: str) -> str:
+    def compute_query(self, spacy_type: str, freebase_id) -> str:
         
         if spacy_type == self.SPACY_TYPES["PERSON"]:
             query = """
-SELECT ?child
-WHERE
-{
-# ?child  father   Bach
-  ?child wdt:P22 wd:Q1339.
-}
-"""
+        SELECT ?child
+        WHERE
+        {
+        # ?child  father   Bach
+        ?child wdt:P22 wd:Q1339.
+        }
+        """
 
         elif spacy_type == self.SPACY_TYPES["NORP"]:
             query = """ insert good query """
@@ -90,7 +98,7 @@ WHERE
 
     def run_query(self, query: str ) -> str:
         print(" go query go")
-        result = self.db.sparql(query)  #"SELECT * { ?s ?p ?o .} LIMIT 10")
+        # result = self.db.sparql(query)  #"SELECT * { ?s ?p ?o .} LIMIT 10")
         return result
 
     def parse_result(self, result:str):
@@ -99,8 +107,7 @@ WHERE
 if __name__ == "__main__" :
     print("--- TESTIN TRIDENT STUB")
     testTrident = TridentStub()
-    query = testTrident.compute_query("PERSON")
-    print(query)
+    query = None #testTrident.compute_query("PERSON")
 
     result = testTrident.run_query("PERSON")
     print(result)
