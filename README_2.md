@@ -13,6 +13,8 @@ results = db.sparql("SELECT * { ?s ?p ?o .} LIMIT 10")
 print(results)
 
 # MAYBE YOU NEED PIP3
+# For parsing:
+pip install lxml
 # Install spacy:
 pip install -U spacy
 python -m spacy download en_core_web_sm

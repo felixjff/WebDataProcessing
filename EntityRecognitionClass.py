@@ -35,7 +35,7 @@ class EntityRecognition(object):
                         record_id = record.rec_headers.get_header(record_attribute)
                         # Clean up the HTML using BeautifulSoup
                         html = record.content_stream().read()
-                        soup = BeautifulSoup(html, "html5lib")
+                        soup = BeautifulSoup(html, "lxml")
                         data = [t for t in soup.find_all(text=True) if t.parent.name not in ['style', 'script', '[document]', 'head']]
                         result = "".join(data)
                         result = result.encode('ascii', errors="ignore").decode('ascii') # Removing all strange characters like emojis
