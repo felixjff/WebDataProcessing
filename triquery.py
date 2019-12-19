@@ -96,6 +96,16 @@ class triquery(object):
     """
     return self.pq(qu % (fb_id, prop))
 
+  def fb_cont_filt(self, fb_id : str, filt : str):
+    qu = """
+     SELECT ?p ?o
+     WHERE {
+       fbns:%s ?p ?o.
+       %s
+     }
+    """
+    return self.pq(qu % (fb_id, filt))
+
   def fb_types(self, fb_id : str):
     qu = """
       SELECT ?o
