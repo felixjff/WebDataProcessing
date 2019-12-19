@@ -67,9 +67,14 @@ class triquery(object):
     qu = """
       SELECT ?o
       WHERE {
-        {fbns:%(fbid)s fb_name: ?o .}
+        {fbns:%(fbid)s fbns:type.object.name ?o .}
         UNION
-        {fbsns:%(fbid)s fb_label: ?o .} 
+        {fbns:%(fbid)s rdfs:label ?o .} 
+        UNION
+        { fbns:%(fbid)s fbns:common.notable_for.display_name ?o .
+          FILTER (CONTAINS(str(?o) = "@en"))
+        }
+        
       }
     """
     return self.q(qu % {'fbid' : fb_id})
@@ -88,10 +93,18 @@ class triquery(object):
   
   def fb_for_name(self, name : str):
     qu = """
-
-
+      SELECT ?s
+      WHERE {
+        { ?s fbns:type.object.name %(n)s .}
+        UNION
+        { ?s rdfs:label %(n)s .} 
+        UNION
+        { ?s fbns:common.notable_for.display_name %(n)s .
+          FILTER (CONTAINS(str(?o) = "@en"))
+        }
+      }
     """
-
+    return self.q(qu % {'n' : name})
 
   def fb_has_name(self, fb_id : str, name : str):
     return name in fb_id 
