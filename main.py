@@ -11,6 +11,7 @@ import time
 import concurrent.futures
 import threading
 import spacy
+import sys
 
 start = time.time()
 lock = threading.Lock()
@@ -53,8 +54,16 @@ entity_recognition = EntityRecognition()
 # Initialize entity linking object
 entity_linking = EntityLinking()
 
+# Get command line argument
+try:
+    filename = sys.argv[1]
+except Exception as e:
+    print("Argument missing, please supply the path to the warc file!")
+    
+    
+
 # Parse all records in warc file by removing html tags and headers.
-parsed_warc = entity_recognition.parse_warc('data/recomp.warc.gz', record_attribute)
+parsed_warc = entity_recognition.parse_warc(filename, record_attribute)
 afterParse = time.time()
 print("parsed ",len(parsed_warc)," in ",time.time() - start," seconds")
 

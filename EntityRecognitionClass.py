@@ -120,7 +120,7 @@ class EntityRecognition(object):
         return entity_list
         
     def store_entities(self, output):
-        with open('data/sample-output.tsv', 'a', newline='') as myfile:
+        with open('intermediate-output.tsv', 'a', newline='') as myfile:
             for e in output:
                 try:
                     myfile.write(str(e[0]) + "\t" + str(e[1]) + "\t" + str(e[2]) + "\t{" + str(e[3]) + "}\n")
