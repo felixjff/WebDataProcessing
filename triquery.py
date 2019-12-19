@@ -100,7 +100,7 @@ class triquery(object):
         { ?s rdfs:label %(n)s .} 
         UNION
         { ?s fbns:common.notable_for.display_name %(n)s .
-          FILTER (CONTAINS(str(?o) = "@en"))
+          #FILTER (CONTAINS(str(?o) = "@en"))
         }
       }
     """
