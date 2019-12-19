@@ -87,6 +87,15 @@ class triquery(object):
     """
     return self.q(qu % {'fbid' : fb_id})
   
+  def fb_qknow(self, fb_id : str, prop : str):
+    qu = """
+     SELECT ?o
+     WHERE {
+       fbns:%s %s ?o.
+     }
+    """
+    return self.pq(qu % (fb_id, prop))
+
   def fb_types(self, fb_id : str):
     qu = """
       SELECT ?o
