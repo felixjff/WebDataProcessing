@@ -72,7 +72,7 @@ class triquery(object):
         {fbns:%(fbid)s rdfs:label ?o .} 
         UNION
         { fbns:%(fbid)s fbns:common.notable_for.display_name ?o .
-          FILTER (CONTAINS(str(?o) = "@en"))
+          FILTER (CONTAINS(str(?o),"@en"))
         }
         
       }
@@ -95,13 +95,13 @@ class triquery(object):
     qu = """
       SELECT ?s
       WHERE {
-        { ?s fbns:type.object.name %(n)s .}
+        { ?s fbns:type.object.name ?o .}
         UNION
-        { ?s rdfs:label %(n)s .} 
+        { ?s rdfs:label ?o .} 
         UNION
-        { ?s fbns:common.notable_for.display_name %(n)s .
-          #FILTER (CONTAINS(str(?o) = "@en"))
+        { ?s fbns:common.notable_for.display_name ?o .
         }
+        FILTER (CONTAINS(str(?o), %(n)s))
       }
     """
     return self.q(qu % {'n' : name})
