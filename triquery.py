@@ -1,8 +1,15 @@
-import trident
 import pprint
 import requests
 import sys
 import json
+
+try:
+  import trident
+except:
+  print("run: module load gcc/6.4.0 && module load python/3.5.2 && export PYTHONPATH=/home/jurbani/trident/build-python")
+
+
+
 
 TRIDENT_PATH = "/home/jurbani/data/motherkb-trident"
 ELASTIC_SEARCH_HOST = "node001:9200"
@@ -60,12 +67,12 @@ class triquery(object):
     qu = """
       SELECT ?o
       WHERE {
-        {fbns:%s fb_name: ?o .}
+        {fbns:{0} fb_name: ?o .}
         UNION
-        {fbsns:%s fb_label: ?o .} 
+        {fbsns:{0} fb_label: ?o .} 
       }
     """
-    return self.q(qu % fb_id)
+    return self.q(qu % (fb_id,))
   
   def fb_types(self, fb_id : str):
     qu = """
@@ -79,6 +86,13 @@ class triquery(object):
   def fb_is_person(self, fb_id : str):
     return "people.person" in self.fb_types(fb_id) 
   
+  def fb_for_name(self, name : str):
+    qu = """
+
+
+    """
+
+
   def fb_has_name(self, fb_id : str, name : str):
     return name in fb_id 
   
