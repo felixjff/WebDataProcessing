@@ -5,7 +5,6 @@ Entity Recognition class
 """
 
 from warcio.archiveiterator import ArchiveIterator
-import html5lib
 from bs4 import BeautifulSoup
 import re
 from nltk.tag import StanfordNERTagger
