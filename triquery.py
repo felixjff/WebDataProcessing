@@ -62,7 +62,15 @@ class triquery(object):
   #run query and pretty print
   def pq(self, query : str):
       self.pp(str(self.q(query)))
-      
+  
+
+  def fb_contents(self, fb_id : str):
+    qu = """
+      SELECT ?1p ?2o
+      WHERE {fbns:%s ?1p ?2o.}
+    """
+    return self.pq(qu % fb_id)
+
   def fb_names(self, fb_id : str):
     qu = """
       SELECT ?o
@@ -101,7 +109,7 @@ class triquery(object):
         UNION
         { ?s fbns:common.notable_for.display_name ?o .
         }
-        FILTER (CONTAINS(str(?o), %(n)s))
+        FILTER (CONTAINS(str(?o), "%(n)s"))
       }
     """
     return self.q(qu % {'n' : name})
