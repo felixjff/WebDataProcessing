@@ -67,12 +67,12 @@ class triquery(object):
     qu = """
       SELECT ?o
       WHERE {
-        {fbns:{0} fb_name: ?o .}
+        {fbns:%(fbid)s fb_name: ?o .}
         UNION
-        {fbsns:{0} fb_label: ?o .} 
+        {fbsns:%(fbid)s fb_label: ?o .} 
       }
     """
-    return self.q(qu.format(fb_id))
+    return self.q(qu % {'fbid' : fb_id})
   
   def fb_types(self, fb_id : str):
     qu = """
