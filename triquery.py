@@ -72,7 +72,7 @@ class triquery(object):
         {fbsns:{0} fb_label: ?o .} 
       }
     """
-    return self.q(qu % (fb_id,))
+    return self.q(qu % {"0" : fb_id})
   
   def fb_types(self, fb_id : str):
     qu = """
