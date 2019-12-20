@@ -18,7 +18,6 @@ class Entity():
         self.candidates_entities = dict()
 
         self.elasticsearch_score = 0            # to tune
-        self.linked_entity_similarity = dict()  # to tune
         self.similarity_score = 0               # to tune
 
 class EntityLinking(ElasticSearch):
@@ -60,21 +59,7 @@ class EntityLinking(ElasticSearch):
         elif method == 'Jaro':
             score = jaro.get_jaro_distance(string1, string2, winkler=True, scaling=0.1)
         
-        return score 
-    
-    def local_kdb_file_linking(self, entity, method, file = None, threshold = None):
-        # Open local KDB file
-        with open("data/sample-labels-cheat.txt") as tsv:
-            # Extract the candidate entities from the KDB together with their Freebase entity IDs and similarity score
-            entity_candidates = []
-            for line in csv.reader(tsv, dialect="excel-tab"):
-                link, score = self.similar(method, entity, line[0], threshold)
-                if link:
-                    entity_candidates.append(line.append(score))
-        # Get entity with highest score by sorting on ascending order
-        entity_candidates.sort(key=lambda x: x[3])
-        # Return Freebase ID
-        return entity_candidates[-1][1]
+        return score
     
     def search_elasticsearch(self, query):
         return self.elastic_search.search(self.elastic_search.DOMAIN, query)
@@ -87,7 +72,7 @@ class EntityLinking(ElasticSearch):
     def get_elasticsearch_candidate_entities(self):
         entities = self.import_entities()
         
-        for entity in entities[0:100]:
+        for entity in entities: #LIMIT [0:100]:
             #print(token[2])
             
             elastic_search_result = self.search_elasticsearch(entity.surface_form)
@@ -100,7 +85,7 @@ class EntityLinking(ElasticSearch):
 
             elif len(elastic_search_result) == 1:
                 #entity = Entity(token[0], token[1], token[2])
-                entity.linked_entity = elastic_search_result
+                entity.linked_entity = list(elastic_search_result.keys())[0]
                 self.single_match_candidate_entities.append(entity)
 
             elif len(elastic_search_result) == 0:
@@ -108,41 +93,20 @@ class EntityLinking(ElasticSearch):
                 self.unmatched_entities.append(entity)
 
     def file_write_entities(self, entities: list(), file_path: str):   
-        with open(file_path, 'a', newline='') as myfile:
+        with open(file_path, 'w', newline='') as myfile:
             for ent in entities:
                 try:
-                    myfile.write(str(ent.doc_id) + "\t" + str(ent.surface_form) + "\t" + list(ent.linked_entity.keys())[0] + "\n")
+                    myfile.write(str(ent.doc_id) + "\t" + str(ent.surface_form) + "\t" + ent.linked_entity + "\n")
                 except Exception as e:
                     print(e)
+    
+    def print_matched_entities(self, entities: list):
+        for ent in entities:
+            print(str(ent.doc_id) + "\t" + str(ent.surface_form) + "\t" + str(ent.linked_entity) + "\n")
 
-    #it is meant to have in input the multiple match from elastic search
-    #a and to select the entity from them based on elastic search avg score
-    def discriminate_on_elasticsearch_score(self, entities: list):
-
-        def avg(my_list :list ) -> float: 
-            return sum(my_list) / len(my_list)
-
-        def get_candidate_entity_with_higher_avg_score( entity) -> dict:
-            keys = list( entity.candidates_entities.keys() )
-            max = 0
-            max_key = keys[0]
-
-            #loop on all the freebase id returned by elasticsearch
-            for key in keys:
-                values = list ( entity.candidates_entities[key])
-                # filter only the numbers in elastic search return stuff
-                float_values = [ x for x in values if type(x) is not str ]
-                if avg( float_values ) > max:
-                    max = avg( float_values )
-                    max_key = key
-
-                entity.elasticsearch_score = max# to tune
-            return entity.candidates_entities[max_key]
-
-        for entity in entities:
-            entity.linked_entity = get_candidate_entity_with_higher_avg_score(entity)
-
-    def discriminate(self, entities: list):
+    # returns a list of the entities that can be matched with a candidates
+    # based on the criterias decided (elastic search scors ans similarity)
+    def get_disambiguable_multiple_match_entities(self) -> list:
         def avg(my_list :list ) -> float: 
             return sum(my_list) / len(my_list)
 
@@ -154,17 +118,15 @@ class EntityLinking(ElasticSearch):
             return avg_similarity
 
         #returns a dictionary with fb_id and elastic search avg score and
-        # a dctionary with only the fb_id and similarity score of the best candidate
-        def get_candidates_score( entity) -> dict:
+        # a tuple with only the fb_id and similarity score of the best candidate
+        def get_candidates_score( entity):
             keys = list( entity.candidates_entities.keys() )
-            max = 0
-            max_key = keys[0]
 
             max_similarity = 0
+            best_candidate_by_similariry = (keys[0], max_similarity)
 
             candidates_elastic_scores = {}
-            best_candidate_by_similariry = ()
-
+            
             #loop on all the freebase id returned by elasticsearch
             for key in keys:
                 values = list ( entity.candidates_entities[key])
@@ -182,106 +144,46 @@ class EntityLinking(ElasticSearch):
 
             return candidates_elastic_scores, best_candidate_by_similariry
 
-        for entity in entities:
+        matched_entities = []
+
+        for entity in entity_linking.multiple_match_candidate_entities:
             candidates_elastic_scores, best_candidate_by_similariry = get_candidates_score(entity)
 
-            best_elastic_cand = max(candidates_elastic_scores, key=candidates_elastic_scores.get)
+            best_elastic_cand_key = max(candidates_elastic_scores, key=candidates_elastic_scores.get)
 
-            if (candidates_elastic_scores[best_elastic_cand] >= self.elastic_search_threshold):
-                entity.linked_entity = best_elastic_cand
+            entity.elasticsearch_score = candidates_elastic_scores[best_elastic_cand_key]
+            entity.similarity_score = best_candidate_by_similariry[1]
+
+            if (candidates_elastic_scores[best_elastic_cand_key] >= self.elastic_search_threshold):
+                entity.linked_entity = str(best_elastic_cand_key)
+                matched_entities.append(entity)
             elif best_candidate_by_similariry[1] >= self.similarity_threshold:
-                entity.linked_entity = best_candidate_by_similariry[0]        
-
-    def discriminate_on_elasticsearch_score_and_similarity(self, entities: list, method = "Jaro"):
-        def avg(my_list :list ) -> float: 
-            return sum(my_list) / len(my_list)
-
-        def get_candidate_entity_with_higher_avg_score( entity) -> dict:
-            keys = list( entity.candidates_entities.keys() )
-            #max = 0
-            max_key = keys[0]
-            max_similarity = 0
-
-            #loop on all the freebase id returned by elasticsearch
-            for key in keys:
-                values = list ( entity.candidates_entities[key])
-                # filter only the numbers in elastic search return stuff
-                #float_values = [ x for x in values if type(x) is not str ]
-                #if avg( float_values ) > max:
-                #    max = avg( float_values )
-                #    max_key = key
-
-                string_values = [ x for x in values if type(x) is str ]
-                sum = 0
-                for string in string_values:
-                    sum = sum + self.similar(entity.surface_form, string, method)
-                avg_similarity = sum/ len(string_values)
-                if(avg_similarity > max_similarity):
-                    max_similarity = avg_similarity
-                    max_key = key
-                
-                entity.similarity_score = max_similarity # to tune
-            return entity.candidates_entities[max_key]
-
-        for entity in entities:
-            entity.linked_entity_similarity = get_candidate_entity_with_higher_avg_score(entity)     # to tune          
+                entity.linked_entity = str(best_candidate_by_similariry[0])
+                matched_entities.append(entity)
+            else:
+                pass # disambiguate with trident here 
+        
+        return matched_entities
 
 if __name__ == "__main__" :
     print("--- TESTIN entity linking")
-    entity_linking = EntityLinking()
-    # entities = entity_linking.import_entities()
-    # print("--- looking into elastic search for " + str(entities[0]) + " \n")
-    # fb_result = self.search_elasticsearch(entities[0][1])
-    # print("--- The result is :\n")
-    # print(fb_result)
-    
+    entity_linking = EntityLinking()    
     entity_linking.get_elasticsearch_candidate_entities()
 
     print("single match found -> ", len(entity_linking.single_match_candidate_entities))
     print("multiple match found -> ", len(entity_linking.multiple_match_candidate_entities))
     print("unmatch found -> ", len(entity_linking.unmatched_entities))
 
-    """
-    if(len(s) > 1):
-        print("\nsurface_form .> ", s[0].surface_form)
-        print("\nlinked_entity -> ", s[0].linked_entity)
-    """
-    """
-    if(len(u) > 1):
-        print("\n----------------UNMATCHED:\n")
-        for un in u:
-            print("\nsurface_form .> ", un.surface_form)
-    """
-    """
-    if(len(ms) > 1):
-        print("\n----------------multi matched:\n")
-        for m in ms:
-            print("\nsurface_form .> ", m.surface_form)
-            print("candidates_entity -> ", m.candidates_entities)
-            print("\n")
-    """
+    disambiguated_entities = entity_linking.get_disambiguable_multiple_match_entities()
 
-    #entity_linking.discriminate_on_elasticsearch_score(entity_linking.multiple_match_candidate_entities)
+    entity_linking.single_match_candidate_entities += disambiguated_entities
 
-    #entity_linking.discriminate_on_elasticsearch_score_and_similarity(    entity_linking.multiple_match_candidate_entities)
-
-    entity_linking.discriminate(entity_linking.multiple_match_candidate_entities)
-
-    sum_similarity_score = 0
-    sum_elastic_score = 0
-    max_similarity = 0
-    max_elastic_score = 0
     elastic_score_list =[]
     similarity_score_list = []
-
     
-    for entity in entity_linking.multiple_match_candidate_entities:
-        """
-        print("NAME: " + entity.surface_form + " TYPE "  + entity.spacy_type + " SC SCORE " + str(entity.elasticsearch_score) + " SIM SCORE " + str(entity.similarity_score) + " EL LINK " + str(entity.linked_entity) + " SM LINK " + str(entity.linked_entity_similarity) + " CONTEXT " + str(entity.context) + "\n CANDIDATES ENTITY: \n" + str(entity.candidates_entities) + "\n")
-        """
+    for entity in disambiguated_entities:
         similarity_score_list.append(entity.similarity_score)
         elastic_score_list.append(entity.elasticsearch_score)
-        
 
     avg_similarity_score = statistics.mean(similarity_score_list)
     avg_elastic_score = statistics.mean(elastic_score_list)
@@ -292,6 +194,8 @@ if __name__ == "__main__" :
     std_similarity = statistics.stdev(similarity_score_list)
     std_elastic = statistics.stdev(elastic_score_list)
 
+    print("\n STATS: \n# DISAMBIGUATED: " + str(len(disambiguated_entities)))
+
     print("AVG similarity: " + str(avg_similarity_score))
     print("MEDIAN similarity: " + str(median_similarity))
     print("STD similarity: " + str(std_similarity))
@@ -299,5 +203,9 @@ if __name__ == "__main__" :
     print("MEDIAN elasticsearch " + str(median_elastic))
     print("STD elastic: " + str(std_elastic))
 
-    #entity_linking.file_write_entities(s, "test/multi-output.tsv")
+    entity_linking.file_write_entities(entity_linking.single_match_candidate_entities, "data/final-output.tsv")
 
+    print("\nTOT SINGLE ENTITIES: " + str(len(entity_linking.single_match_candidate_entities)))
+
+    entity_linking.print_matched_entities(entity_linking.single_match_candidate_entities)
+    

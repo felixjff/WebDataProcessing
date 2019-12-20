@@ -79,9 +79,12 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=500) as executor:
 end = time.time()
 print("end: ",end - start)
 
-single_match, multiple_match, unmatched = entity_linking.get_elasticsearch_candidate_entities()
+entity_linking.get_elasticsearch_candidate_entities()
 
+disambiguated_entities = entity_linking.get_disambiguable_multiple_match_entities()
 
+entity_linking.single_match_candidate_entities += disambiguated_entities
 
+entity_linking.file_write_entities(entity_linking.single_match_candidate_entities, "data/final-output.tsv")
 
-
+entity_linking.print_matched_entities(entity_linking.single_match_candidate_entities)
