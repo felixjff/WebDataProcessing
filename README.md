@@ -60,19 +60,22 @@ The file is named intermediate-output.tsv and is the primary input for the next 
 
 
 ## Entitity Linking
-Like other groups, we ran into some issue with this portion of our assignment. We had trouble setting up the Elastic Search 
-and Trident instances. Once we had been supplied with the global Elastic Search instance, usable by all groups, our
-development went smoother.
+Like other groups, we ran into some issue with this portion of our assignment. We had trouble setting up the Elastic Search and Trident instances. Once we had been supplied with the global Elastic Search instance, usable by all groups, our development went smoother.
+The first thing we do is to read the file intermediate-output.tsv into memory. For each entity mention, we then query Elastic Search for candidate entities. Entity mentions with a single match are considered to be immediately correctly matched, and put into a list. Entities with no matches are put into another list (which is ignored in the final version of our submission, but we used it for some rudimentary analysis of our performance). Finally, entity mentions with multiple matches are put into a list.
+We then go through all the multiple match entity mentions, and for each one we analyze the candidates. 
 
-The first thing we do is to read the file intermediate-output.tsv into memory. For each entity mention, we then query Elastic Search
-for candidate entities. Entity mentions with a single match are considered to be immediately correctly matched, and put into
-a list. Entities with no matches are put into another list (which is ignored in the final version of our submission, but we used
-it for some rudimentary analysis of our performance). Finally, entity mentions with multiple matches are put into a list.
+The priority decided for the disambiguations have been: the Elastic Search score, the string similarity and then, in case the results of these two steps were below the required standards, a further disambiguation step based on trident was planned (but, due to time constraints, never implemented).
 
-We then go through all the multiple match entity mentions, and for each one we analyze the candidates, first on the Elastic Search
-score associated with each one. We analyzed our results using basic statistical methods (mean, median and stdev). The mean was 4.4, the median 4.9 and the standard deviation was 2.1. Based on those results, we decided on a threshold of 4.0. If no entity can be found that reaches the threshold, we then go on to string similarity analysis. We did some [research](https://www.cs.cmu.edu/~wcohen/postscript/ijcai-ws-2003.pdf) on different similarity measures, and found that Jaro-Winkler has a pretty good recall/precision score. Based on the same statistical analysis again for the string similarity scores, we chose a threshold of 0.8 (mean=0.93, median=0.96, stdev=0.1).
+### Elastic Search Score Disambiguation
+For every surface form found in the raw file, an elastic search query is performed. Because for a single Freebase ID returned by Elastic Search, many scores can be provided (for the many documents analyzed) the average of these scores is considered. After every query is calculated a dictionary of Freebase_ID : elastic_search_score.
 
-In the case an entity does not meet either threshold, our plan was then to select the top 5-10 candidates (based on the ElasticSearch score) and query Trident based on the respective Freebase IDs, and use the label supplied by spaCy (person/location/organization/etc) to select the best candidate. As said before, we unfortunately did not have time to do this. Instead, when neither threshold is reached, we optimistically select the candidate with the best ElasticSearch score and determine that to be the entity match.
+Firstly, it is compared wheater the maximum score value of this dictionary (containing all the candidates entity from Elastic Search) is greater than a threshold or not. This threshold has been tune by empirical observation of the candidates entities resulting from the sample file available. The average Elastic Search score mean was 4.4, the median 4.9 and the standard deviation was 2.1. Based on those results and the entities matched observed, the threshold was set to 4.0. 
+
+### String Similarity Disambiguation
+If no entity can reach the threshold, an approach based on string similarity analysis is applied. After some research on different similarity algorithms, the team found that Jaro-Winkler was, in our case study, the best tradeoff for recall/precision score. Once again, due to the fact that Elastic Search might return various string associated with a single Freebase ID, the overall similarity score considered is the average of the single comparisons between the surface form in analysis and all the strings associated with the Freebase entity. The acceptance threshold for string similarity was set to 0.8. The statistical properties of the sample analyzed to tune this parameter are: mean=0.93, median=0.96, stdev=0.1
+
+### Trident Disambiguation
+In the case an entity does not meet either threshold, our plan was then to select the top 5-10 candidates (based on the ElasticSearch score) and query Trident based on the respective Freebase IDs and use the label supplied by spaCy (person/location/organization/etc) to select the best candidate. As said before, we, unfortunately, did not have time to do this. Instead, when neither threshold is reached, we optimistically select the candidate with the best ElasticSearch score and determine that to be the entity match.
 
 
 # Running Instructions:
