@@ -149,22 +149,18 @@ class EntityLinking(ElasticSearch):
 
             entity.elasticsearch_score = candidates_elastic_scores[best_elastic_cand_key]
             entity.similarity_score = best_candidate_by_similariry[1]
-            '''
             if (candidates_elastic_scores[best_elastic_cand_key] >= self.elastic_search_threshold):
                 entity.linked_entity = str(best_elastic_cand_key)
                 matched_entities.append(entity)
             elif best_candidate_by_similariry[1] >= self.similarity_threshold:
                 entity.linked_entity = str(best_candidate_by_similariry[0])
                 matched_entities.append(entity)
-            '''
-            if False:
-                pass 
             else:
-                print("Checking %s" % entity.surface_form)
+                #print("Checking %s" % entity.surface_form)
                 cand = triquery.t.fb_wiki(entity.surface_form.replace(" ", "_"))
                 if cand:
                     entity.linked_entity = cand
-                    print("%s\t%s" % (entity.surface_form, cand))
+                    #print("%s\t%s" % (entity.surface_form, cand))
                     matched_entities.append(entity)
         
         return matched_entities
