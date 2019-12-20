@@ -72,7 +72,7 @@ class EntityLinking(ElasticSearch):
     def get_elasticsearch_candidate_entities(self):
         entities = self.import_entities()
         
-        for entity in entities:  
+        for entity in entities[0:50]:  
             elastic_search_result = self.search_elasticsearch(entity.surface_form)
             
             if len(elastic_search_result) > 1:
