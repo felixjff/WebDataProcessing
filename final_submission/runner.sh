@@ -19,6 +19,7 @@ python3 -m pip install numpy --upgrade --user
 echo "----- SETUP DONE    "
 
 rm -f intermediate-output.tsv
+rm -f final-output.tsv
 
 python3 main.py $1
 ~                  
