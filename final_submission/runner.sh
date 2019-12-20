@@ -1,12 +1,7 @@
 #!/bin/bash
-# you need to give this file permission with: chmod +x setup.sh
-echo "--- START SETUP:\n"
-echo "SETUP: load gcc/6.4.0\n"
-module load gcc/6.4.0
-echo "SETUP: load python, export path"
-module load python/3.5.2
+
 export PYTHONPATH=/home/jurbani/trident/build-python
-#echo "SETUP: install python modules"
+echo "----- SETUP: install python modules"
 # NLP preprocessing modules
 python3 -m pip install warcio --upgrade --user
 python3 -m pip install html5lib --upgrade --user
@@ -21,7 +16,8 @@ python3 -m pip install distance --upgrade --user
 # Other modules
 python3 -m pip install python-csv --upgrade --user
 python3 -m pip install numpy --upgrade --user
-echo "--- SETUP DONE    "
+echo "----- SETUP DONE    "
 
 
-#python3 main.py $1
+python3 main.py $1
+~                  
