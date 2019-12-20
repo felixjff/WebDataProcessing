@@ -6,6 +6,8 @@ import csv, codecs, difflib
 from pyjarowinkler import distance as jaro
 from ElasticSearchClass import ElasticSearch
 import statistics
+import triquery
+
 
 class Entity():
     def __init__(self, doc_id: str, surface_form: str, spacy_type: str, context = ""):
@@ -19,6 +21,8 @@ class Entity():
 
         self.elasticsearch_score = 0            # to tune
         self.similarity_score = 0               # to tune
+        
+
 
 class EntityLinking(ElasticSearch):
     def __init__(self):    
@@ -30,7 +34,7 @@ class EntityLinking(ElasticSearch):
 
         self.elastic_search_threshold = 4.0
         self.similarity_threshold = 0.8
-        
+
     def import_entities(self):
         entities = list()
         # Load file with all recognized entity surface forms and the IDs of the documents they were found on.
@@ -133,6 +137,8 @@ class EntityLinking(ElasticSearch):
                     best_candidate_by_similariry = (key, max_similarity)
 
             return candidates_elastic_scores, best_candidate_by_similariry
+        
+        
 
         matched_entities = []
 
@@ -143,14 +149,20 @@ class EntityLinking(ElasticSearch):
 
             entity.elasticsearch_score = candidates_elastic_scores[best_elastic_cand_key]
             entity.similarity_score = best_candidate_by_similariry[1]
-
+            '''
             if (candidates_elastic_scores[best_elastic_cand_key] >= self.elastic_search_threshold):
                 entity.linked_entity = str(best_elastic_cand_key)
                 matched_entities.append(entity)
             elif best_candidate_by_similariry[1] >= self.similarity_threshold:
                 entity.linked_entity = str(best_candidate_by_similariry[0])
                 matched_entities.append(entity)
+            '''
+            if False:
+                pass 
             else:
-                pass # disambiguate with trident here 
+                cand = triquery.t.fb_wiki(entity.surface_form)
+                if cand:
+                    entity.linked_entity = cand
+                    matched_entities.append(entity)
         
         return matched_entities

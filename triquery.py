@@ -64,6 +64,12 @@ class triquery(object):
       self.pp(str(self.q(query)))
   
 
+  def fb_carve(self, s : str) :
+    if "empty result" in s:
+      return ""
+    return s.split('[{"s" : {"type" : "uri","value" : "http://rdf.freebase.com/ns')[1].split('"}')[0].replace(".","/")
+
+
   def fb_contents(self, fb_id : str):
     qu = """
       SELECT ?1p ?2o
@@ -79,6 +85,9 @@ class triquery(object):
       }
     """
     return self.q(qu % s)
+
+  def fb_wiki(self, s : str):
+    return fb_carve(fb_for_wiki(s))
 
   def fb_names(self, fb_id : str):
     qu = """
@@ -157,3 +166,6 @@ class triquery(object):
         }
         LIMIT 10
     """
+
+
+t = triquery()
