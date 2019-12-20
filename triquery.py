@@ -65,7 +65,7 @@ class triquery(object):
   
 
   def fb_carve(self, s : str) :
-    if "<empty result -- known empty>" in s:
+    if s == '{"head" : {"vars" : {}},"results" : {"bindings" : {}},"stats" : {}}'
       return ""
     return s.split('[{"s" : {"type" : "uri","value" : "http://rdf.freebase.com/ns')[1].split('"}')[0].replace(".","/")
 
