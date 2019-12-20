@@ -160,9 +160,11 @@ class EntityLinking(ElasticSearch):
             if False:
                 pass 
             else:
-                cand = triquery.t.fb_wiki(entity.surface_form)
+                print("Checking %s" % entity.surface_form)
+                cand = triquery.t.fb_wiki(entity.surface_form.replace(" ", "_"))
                 if cand:
                     entity.linked_entity = cand
+                    print("%s\t%s" % (entity.surface_form, cand))
                     matched_entities.append(entity)
         
         return matched_entities
