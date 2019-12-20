@@ -23,8 +23,7 @@ Methods for entity linking can be found on the EntityLinking class on the file E
 EntityLinking inherits from ElastichSearch class, which contains the methods to request candidate entities 
 from FreeBase. Everything is then put together in the main.py file.
 The submission also contain a file called triquery.py. This file contains some methods and code intended
-for the purpose of querying Trident. Unfortunately, we did not have time to finish implementing this functionality
-in combination with the rest of our entity linking.
+for the purpose of querying Trident.
 
 ## Entitity Recognition
 
@@ -64,7 +63,7 @@ Like other groups, we ran into some issue with this portion of our assignment. W
 The first thing we do is to read the file intermediate-output.tsv into memory. For each entity mention, we then query Elastic Search for candidate entities. Entity mentions with a single match are considered to be immediately correctly matched, and put into a list. Entities with no matches are put into another list (which is ignored in the final version of our submission, but we used it for some rudimentary analysis of our performance). Finally, entity mentions with multiple matches are put into a list.
 We then go through all the multiple match entity mentions, and for each one we analyze the candidates. 
 
-We decided to use both the score returned by Elastic Search and string similarity measures to rank the candidate entities. For both, we decided on some threshold. First we rank entities by the ES score, if no candidate reaches the threshold we rank them by string similarities. If neither score reaches the respective threshold, we use Trident to find a we optimistically choose the entity with the highest ES score.
+We decided to use both the score returned by Elastic Search and string similarity measures to rank the candidate entities. For both, we decided on some threshold. First we rank entities by the ES score, if no candidate reaches the threshold we rank them by string similarities. If neither score reaches the respective threshold, we use Trident.
 
 ### Elastic Search Score Disambiguation
 For every surface form found in the raw file, an elastic search query is performed. For a single Freebase ID returned by Elastic Search, multiple scores can be returned (for the many documents analyzed), so the average of these scores is used (per candidate). After every query, we construct a dictionary of Freebase_IDs : elastic_search_score.
@@ -75,8 +74,7 @@ Firstly, we check whether the maximum score value of this dictionary (containing
 If no entity can reach the ES threshold, an approach based on string similarity analysis is applied. After some [research](https://www.cs.cmu.edu/~wcohen/postscript/ijcai-ws-2003.pdf) on different similarity algorithms, we found that Jaro-Winkler was, in our case study, the best tradeoff for recall/precision score. Once again, due to the fact that Elastic Search might return various strings associated with a single Freebase ID, the overall similarity score considered is the average of the single comparisons between the surface form and all the strings associated with the Freebase entity. The acceptance threshold for string similarity was set to 0.8. The statistical properties of the sample analyzed to tune this parameter are: mean=0.93, median=0.96, stdev=0.1
 
 ### Trident Disambiguation
-In the case an entity does not meet either threshold, our plan was then to select the top 5-10 candidates (based on the ES score) and query Trident based on the respective Freebase IDs and use the label supplied by spaCy (person/location/organization/etc) to select the best candidate. As said before, we, unfortunately, did not have time to do this. Instead, when neither threshold is reached, we optimistically select the candidate with the best ElasticSearch score and determine that to be the entity match.
-
+In the case an entity does not meet either threshold, we query Trident by matching on Wikipedia article titles, and optimistically return that entity as a match.
 
 # Running Instructions:
 - Bash Run run.sh <warc-file-name>
