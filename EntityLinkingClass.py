@@ -156,11 +156,13 @@ class EntityLinking(ElasticSearch):
                 entity.linked_entity = str(best_candidate_by_similariry[0])
                 matched_entities.append(entity)
             else:
-                #print("Checking %s" % entity.surface_form)
-                cand = triquery.t.fb_wiki(entity.surface_form.replace(" ", "_"))
-                if cand:
-                    entity.linked_entity = cand
-                    #print("%s\t%s" % (entity.surface_form, cand))
-                    matched_entities.append(entity)
+                try:#print("Checking %s" % entity.surface_form)
+                    cand = triquery.t.fb_wiki(entity.surface_form.replace(" ", "_"))
+                    if cand:
+                        entity.linked_entity = cand
+                        #print("%s\t%s" % (entity.surface_form, cand))
+                        matched_entities.append(entity)
+                except:
+                    continue 
         
         return matched_entities
