@@ -71,6 +71,15 @@ class triquery(object):
     """
     return self.pq(qu % fb_id)
 
+  def fb_for_wiki(self, s : str):
+    qu = """
+      SELECT ?s
+      WHERE {
+        ?s fbns:common.topic.topic_equivalent_webpage <http://en.wikipedia.org/wiki/%s> .
+      }
+    """
+    return self.q(qu % s)
+
   def fb_names(self, fb_id : str):
     qu = """
       SELECT ?o
@@ -136,6 +145,7 @@ class triquery(object):
   def fb_has_name(self, fb_id : str, name : str):
     return name in fb_id 
   
+
     
   def fb_wiki_links(self, fb_id : str):
     query = """
