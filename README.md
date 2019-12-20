@@ -1,6 +1,9 @@
-# wdps2019
-Web Data Processing Systems 2019 (VU course XM_40020)
+# Web Data Processing Systems 2019 (VU course XM_40020)
 Group: 13 
+Felix Farias Fueyo - ffo250 - 2631203
+Aleksandar Markovic - amc340 - 2651539
+Andrea Rossi - ari720 - 2651310
+Svava Bjarnadottir - sbr444 - 2640598
 
 # Assignment: Large Scale Entity Linking
 
@@ -76,5 +79,8 @@ If no entity can reach the ES threshold, an approach based on string similarity 
 ### Trident Disambiguation
 In the case an entity does not meet either threshold, we query Trident by matching on Wikipedia article titles, and optimistically return that entity as a match.
 
+### Final output
+Finally, the matched entities are written out to stdout, as well as to a file called final-output.tsv in the same folder as the run.sh script is located.
+
 # Running Instructions:
-- Bash Run run.sh <warc-file-name>
+- Bash Run run.sh <warc-file-name> > <output-file-name>
