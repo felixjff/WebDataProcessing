@@ -87,7 +87,7 @@ class triquery(object):
     return self.q(qu % s)
 
   def fb_wiki(self, s : str):
-    return fb_carve(fb_for_wiki(s))
+    return self.fb_carve(self.fb_for_wiki(s))
 
   def fb_names(self, fb_id : str):
     qu = """
@@ -152,7 +152,7 @@ class triquery(object):
     return self.q(qu % {'n' : name})
 
   def fb_has_name(self, fb_id : str, name : str):
-    return name in fb_id 
+    return name in self.fb_names(fb_id) 
   
 
     
