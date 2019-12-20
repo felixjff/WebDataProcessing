@@ -9,4 +9,4 @@ module load python/3.5.2
 echo "----- SETUP: load prun"
 module load prun
 
-prun -o testrun -v -np 1 runner.sh $1
+prun -o wdps_group13 -v -np 1 -timeout 600000 runner.sh $1
